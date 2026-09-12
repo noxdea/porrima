@@ -1,0 +1,130 @@
+module Porrima
+  VERSION: String
+  type lines = String | Array[String]
+  type kind = :equal | :delete | :insert
+
+  class Error < StandardError
+  end
+  class PatchError < Error
+  end
+  class BudgetExceeded < Error
+  end
+
+  class Edit < Struct[untyped]
+    attr_accessor kind: kind
+    attr_accessor old_line: Integer
+    attr_accessor new_line: Integer
+    attr_accessor text: String
+    def self.new: (kind: kind, old_line: Integer, new_line: Integer, text: String) -> instance
+  end
+
+  class Hunk < Struct[untyped]
+    attr_accessor old_start: Integer
+    attr_accessor old_count: Integer
+    attr_accessor new_start: Integer
+    attr_accessor new_count: Integer
+    attr_accessor edits: Array[Edit]
+    def self.new: (old_start: Integer, old_count: Integer, new_start: Integer, new_count: Integer, edits: Array[Edit]) -> instance
+    def old_text: () -> String
+    def new_text: () -> String
+  end
+
+  class Mark < Struct[untyped]
+    attr_accessor new_line: Integer
+    attr_accessor kind: :added | :modified | :removed
+    attr_accessor count: Integer
+    def self.new: (new_line: Integer, kind: (:added | :modified | :removed), count: Integer) -> instance
+  end
+
+  class Row < Struct[untyped]
+    attr_accessor kind: :equal | :modified | :added | :removed
+    attr_accessor old_line: Integer?
+    attr_accessor new_line: Integer?
+    attr_accessor old_text: String?
+    attr_accessor new_text: String?
+    def self.new: (kind: (:equal | :modified | :added | :removed), old_line: Integer?, new_line: Integer?, old_text: String?, new_text: String?) -> instance
+  end
+
+  class Span < Struct[untyped]
+    attr_accessor kind: kind
+    attr_accessor text: String
+    def self.new: (kind: kind, text: String) -> instance
+  end
+
+  class Stat < Struct[untyped]
+    attr_accessor insertions: Integer
+    attr_accessor deletions: Integer
+    attr_accessor hunks: Integer
+    def self.new: (insertions: Integer, deletions: Integer, hunks: Integer) -> instance
+  end
+
+  class Budget
+    NONE: Budget
+    attr_reader max_bytes: Integer?
+    attr_reader max_lines: Integer?
+    attr_reader on_exceeded: :replace | :raise
+    def initialize: (?max_bytes: Integer?, ?max_lines: Integer?, ?on_exceeded: (:replace | :raise)) -> void
+    def exceeded?: (Array[String], Array[String]) -> bool
+  end
+
+  # Finish lazy fields on the producing thread before sharing an instance.
+  class Diff
+    def initialize: (lines, lines, ?context: Integer, ?budget: Budget?) -> void
+    def edits: () -> Array[Edit]
+    def hunks: () -> Array[Hunk]
+    def marks: () -> Array[Mark]
+    def rows: () -> Array[Row]
+    def stat: () -> Stat
+    def hunk_at: (new_line: Integer) -> Hunk?
+    def mark_at: (new_line: Integer) -> Mark?
+    def empty?: () -> bool
+    def to_unified: (?old_name: String, ?new_name: String) -> String
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  module Patch
+    class FileDiff < Struct[untyped]
+      attr_accessor old_name: String
+      attr_accessor new_name: String
+      attr_accessor hunks: Array[Hunk]
+      def self.new: (old_name: String, new_name: String, hunks: Array[Hunk]) -> instance
+      def applies?: (String) -> bool
+      def apply: (String) -> String
+      def revert: (String) -> String
+    end
+    def self.parse: (String) -> Array[FileDiff]
+  end
+
+  module Inline
+    TOKEN_LIMIT: Integer
+    def self.refine: (String, String, ?granularity: (:word | :char)) -> [Array[Span], Array[Span]]
+    def self.refine_row: (Row, ?granularity: (:word | :char)) -> [Array[Span], Array[Span]]
+  end
+
+  module Merge
+    class Conflict < Struct[untyped]
+      attr_accessor base_start: Integer
+      attr_accessor base_count: Integer
+      attr_accessor base: String
+      attr_accessor ours: String
+      attr_accessor theirs: String
+      def self.new: (base_start: Integer, base_count: Integer, base: String, ours: String, theirs: String) -> instance
+    end
+    class Result
+      attr_reader sections: Array[String | Conflict]
+      attr_reader conflicts: Array[Conflict]
+      def initialize: (Array[String | Conflict]) -> void
+      def clean?: () -> bool
+    end
+    def self.three_way: (base: String, ours: String, theirs: String) -> Result
+    def self.to_text: (Result, ?style: (:diff3 | :merge), ?labels: Array[String]) -> String
+  end
+
+  def self.diff: (lines, lines, ?context: Integer, ?budget: Budget?) -> Diff
+  def self.edits: (lines, lines, ?budget: Budget?) -> Array[Edit]
+  def self.hunks: (lines, lines, ?context: Integer, ?budget: Budget?) -> Array[Hunk]
+  def self.unified: (lines, lines, ?old_name: String, ?new_name: String, ?context: Integer, ?budget: Budget?) -> String
+  def self.revert: (String, Hunk) -> String
+  def self.apply: (String, Hunk) -> String
+  def self.identical?: (lines, lines) -> bool
+end

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rbconfig"
+require "rubygems"
+unless RUBY_ENGINE == "ruby" && (RUBY_VERSION.split(".").first(2).map(&:to_i) <=> [3, 1]) >= 0
+  abort "Porrima requires CRuby 3.1 or newer."
+end
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+require "porrima"
+require "porrima/cli"
+exit Porrima::CLI.main(ARGV)
