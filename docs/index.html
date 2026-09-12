@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth bg-orbit">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090b10">
+    <meta name="description" content="Porrima is a dependency-free Ruby library for line, word, and three-way diff, exact patching, and merge.">
+    <meta property="og:title" content="Porrima — diff without display policy">
+    <meta property="og:description" content="Structured text changes in pure Ruby. Render them your way.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://noxdea.github.io/porrima/">
+    <title>Porrima — Diff without display policy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans+Condensed:wght@500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/site.css">
+  </head>
+  <body class="min-h-dvh bg-orbit font-sans text-ink antialiased selection:bg-signal selection:text-orbit">
+    <a class="sr-only rounded-sm bg-signal px-4 py-2 font-medium text-orbit focus:not-sr-only focus:absolute focus:left-4 focus:top-4" href="#content">Skip to content</a>
+
+    <header class="border-b border-rule">
+      <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10" aria-label="Primary navigation">
+        <a class="font-display text-xl font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="./">Porrima</a>
+        <div class="flex items-center gap-6 text-sm text-muted">
+          <a class="hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="#capabilities">Capabilities</a>
+          <a class="hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="https://github.com/noxdea/porrima">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="content">
+      <section class="mx-auto grid max-w-7xl lg:grid-cols-2">
+        <div class="flex min-h-[34rem] flex-col justify-between px-6 py-16 lg:px-10 lg:py-24">
+          <div>
+            <p class="mb-8 flex items-center gap-3 text-sm text-muted">
+              <span class="size-2 rounded-full bg-signal" aria-hidden="true"></span>
+              v0.1.0 · Pure Ruby
+            </p>
+            <h1 class="max-w-xl text-balance font-display text-6xl font-medium leading-[0.94] sm:text-7xl lg:text-8xl">Text changes, without opinion attached.</h1>
+            <p class="mt-8 max-w-lg text-pretty text-lg leading-8 text-muted">Porrima computes line, word, and three-way diffs. You decide how they look, where they live, and what happens next.</p>
+          </div>
+          <div class="mt-12 flex flex-wrap gap-4">
+            <a class="rounded-sm bg-signal px-5 py-3 text-sm font-semibold text-orbit hover:bg-amber-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="https://github.com/noxdea/porrima#quick-start">Read the quick start</a>
+            <a class="rounded-sm border border-rule px-5 py-3 text-sm font-semibold hover:border-muted focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="https://github.com/noxdea/porrima/releases/tag/v0.1.0">View v0.1.0</a>
+          </div>
+        </div>
+
+        <figure class="border-t border-rule bg-panel lg:border-l lg:border-t-0" aria-labelledby="diff-caption">
+          <figcaption id="diff-caption" class="flex items-center justify-between border-b border-rule px-6 py-4 font-mono text-xs text-muted">
+            <span>profile.rb</span>
+            <span>unified diff</span>
+          </figcaption>
+          <div class="overflow-x-auto px-4 py-10 font-mono text-sm leading-7 sm:px-8 sm:py-14" role="img" aria-label="A unified diff changing a profile from draft to ready">
+            <div class="flex text-muted"><span class="w-12 shrink-0 select-none text-right">1</span><span class="w-10 shrink-0 select-none text-center"> </span><code>profile = {</code></div>
+            <div class="flex text-muted"><span class="w-12 shrink-0 select-none text-right">2</span><span class="w-10 shrink-0 select-none text-center"> </span><code>  name: "Porrima",</code></div>
+            <div class="-mx-4 flex border-y border-rule bg-white/5 px-4 text-muted sm:-mx-8 sm:px-8"><span class="w-12 shrink-0 select-none text-right">3</span><span class="w-10 shrink-0 select-none text-center">−</span><code>  state: :draft,</code></div>
+            <div class="-mx-4 flex border-b border-signal/30 bg-signal/10 px-4 text-ink sm:-mx-8 sm:px-8"><span class="w-12 shrink-0 select-none text-right">3</span><span class="w-10 shrink-0 select-none text-center text-signal">+</span><code>  state: :ready,</code></div>
+            <div class="flex text-muted"><span class="w-12 shrink-0 select-none text-right">4</span><span class="w-10 shrink-0 select-none text-center"> </span><code>}</code></div>
+
+            <div class="mt-12 border-t border-rule pt-8">
+              <div class="flex"><span class="w-12 shrink-0 select-none text-right text-muted">1</span><span class="w-10 shrink-0"></span><code><span class="text-signal">require</span> "porrima"</code></div>
+              <div class="flex"><span class="w-12 shrink-0 select-none text-right text-muted">2</span><span class="w-10 shrink-0"></span><code></code></div>
+              <div class="flex"><span class="w-12 shrink-0 select-none text-right text-muted">3</span><span class="w-10 shrink-0"></span><code>diff = Porrima.diff(before, after)</code></div>
+              <div class="flex"><span class="w-12 shrink-0 select-none text-right text-muted">4</span><span class="w-10 shrink-0"></span><code>diff.stat.to_h</code></div>
+              <div class="flex text-muted"><span class="w-12 shrink-0 select-none text-right">5</span><span class="w-10 shrink-0"></span><code># { insertions: 1, deletions: 1, hunks: 1 }</code></div>
+            </div>
+          </div>
+        </figure>
+      </section>
+
+      <section id="capabilities" class="border-y border-rule">
+        <div class="mx-auto grid max-w-7xl lg:grid-cols-2">
+          <div class="px-6 py-16 lg:px-10 lg:py-24">
+            <h2 class="max-w-md text-balance font-display text-5xl font-medium leading-tight sm:text-6xl">The diff is data.</h2>
+            <p class="mt-6 max-w-md text-pretty text-lg leading-8 text-muted">Inspect structured edits, hunks, gutter marks, paired rows, and inline spans. Rendering policy stays in your application.</p>
+          </div>
+          <dl class="border-t border-rule lg:border-l lg:border-t-0">
+            <div class="grid gap-3 border-b border-rule px-6 py-8 sm:grid-cols-3 lg:px-10"><dt class="font-medium text-signal">Compare</dt><dd class="text-pretty leading-7 text-muted sm:col-span-2">Linear-space Myers diff with line and token-level refinement.</dd></div>
+            <div class="grid gap-3 border-b border-rule px-6 py-8 sm:grid-cols-3 lg:px-10"><dt class="font-medium text-signal">Patch</dt><dd class="text-pretty leading-7 text-muted sm:col-span-2">Strict unified patches that apply or revert only against exact text.</dd></div>
+            <div class="grid gap-3 px-6 py-8 sm:grid-cols-3 lg:px-10"><dt class="font-medium text-signal">Merge</dt><dd class="text-pretty leading-7 text-muted sm:col-span-2">Three-way merge with structured conflicts and optional diff3 markers.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
+        <div class="grid gap-12 lg:grid-cols-2 lg:items-end">
+          <div>
+            <h2 class="max-w-lg text-balance font-display text-5xl font-medium leading-tight sm:text-6xl">Small core. Clear boundaries.</h2>
+            <p class="mt-6 max-w-xl text-pretty text-lg leading-8 text-muted">No file reads, no terminal styling, no runtime dependencies. Porrima does the text work and gets out of the way.</p>
+          </div>
+          <div class="border border-rule bg-panel p-6 sm:p-8">
+            <p class="mb-4 text-sm text-muted">Install from RubyGems</p>
+            <code class="block overflow-x-auto font-mono text-lg text-ink"><span class="select-none text-signal">$</span> gem install porrima</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-rule">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between lg:px-10">
+        <p>Porrima v0.1.0 · MIT licensed</p>
+        <div class="flex gap-6">
+          <a class="hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="https://github.com/noxdea/porrima">Source</a>
+          <a class="hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal" href="https://github.com/noxdea/porrima/blob/main/CHANGELOG.md">Changelog</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
