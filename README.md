@@ -1,18 +1,39 @@
-# Porrima
+<h1 align="center">Porrima</h1>
 
-[![Gem version](https://img.shields.io/gem/v/porrima.svg)](https://rubygems.org/gems/porrima)
-[![CI](https://github.com/noxdea/porrima/actions/workflows/main.yml/badge.svg)](https://github.com/noxdea/porrima/actions/workflows/main.yml)
-[![CRuby 3.1+](https://img.shields.io/badge/CRuby-%3E%3D%203.1-cc342d.svg)](porrima.gemspec)
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+<p align="center">
+  <strong>Dependency-free line, word, and three-way diff, exact patching, and structured merge for Ruby.</strong>
+</p>
 
-Line, word, and three-way diff, patch, and merge in pure Ruby.
+<p align="center">
+  <a href="https://rubygems.org/gems/porrima"><img src="https://img.shields.io/gem/v/porrima.svg" alt="Gem version"></a>
+  <a href="https://github.com/noxdea/porrima/actions/workflows/main.yml"><img src="https://github.com/noxdea/porrima/actions/workflows/main.yml/badge.svg" alt="CI status"></a>
+  <a href="porrima.gemspec"><img src="https://img.shields.io/badge/CRuby-%3E%3D%203.1-cc342d.svg" alt="CRuby 3.1 or newer"></a>
+  <a href="LICENSE.txt"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+</p>
 
-## Scope
+<p align="center">
+  <a href="https://noxdea.github.io/porrima/">Website</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#core-api">Core API</a> ·
+  <a href="#cli">CLI</a>
+</p>
 
-Porrima computes from two or three texts. Its core never reads files, knows
-nothing about Git, and has no runtime dependencies. Color, width, truncation,
-caching, and other display policy belong to the caller. The CLI only connects
-files to the library's interoperable formats.
+---
+
+Porrima turns two or three texts into structured edits, hunks, patches, and
+merge conflicts. Its core performs no I/O, knows nothing about Git, and leaves
+color, width, truncation, caching, and other display policy to the caller.
+
+## Features
+
+- Linear-space Myers diff for lines and inline word or character refinement
+- Context hunks, change statistics, gutter marks, and paired rows
+- Unified diff output with strict patch parsing, application, and reversal
+- Three-way merge with structured conflicts and `diff3` or `merge` markers
+- CLI output as unified text or JSON
+- No runtime dependencies
 
 ## Installation
 
@@ -20,43 +41,85 @@ files to the library's interoperable formats.
 gem install porrima
 ```
 
+Or add `gem "porrima"` to your Gemfile. Porrima requires CRuby 3.1 or newer.
+
 ## Quick start
 
 ```ruby
 require "porrima"
 
-result = Porrima.diff("one\ntwo\n", "one\nchanged\n", context: 1)
-result.hunks
-result.stat.to_h # => {insertions: 1, deletions: 1, hunks: 1}
-result.marks
-result.rows
-result.to_unified(old_name: "a/example", new_name: "b/example")
+before = "one\ntwo\n"
+after = "one\nchanged\n"
+diff = Porrima.diff(before, after, context: 1)
 
-old_spans, new_spans = Porrima::Inline.refine("hello old", "hello new")
-patch = Porrima::Patch.parse(result.to_unified).first
-patch.apply("one\ntwo\n")
+diff.stat.to_h
+# => { insertions: 1, deletions: 1, hunks: 1 }
 
-merge = Porrima::Merge.three_way(base: "old\n", ours: "ours\n", theirs: "theirs\n")
-Porrima::Merge.to_text(merge, style: :diff3)
+puts diff.to_unified(old_name: "a/example", new_name: "b/example")
 ```
 
-`Porrima.edits`, `.hunks`, `.unified`, `.apply`, and `.revert` are available
-as lower-level entry points. `Porrima::Budget` can replace an oversized input
-as one block or raise `Porrima::BudgetExceeded`.
+## Core API
 
-## Data model
+| API | Result |
+| --- | --- |
+| `Porrima.diff(before, after)` | Lazy `Diff` snapshot with every result view |
+| `Porrima.edits(before, after)` | Ordered equal, deleted, and inserted lines |
+| `Porrima.hunks(before, after)` | Context-aware change groups |
+| `Porrima.unified(before, after)` | Unified diff text |
+| `Porrima.apply(text, hunk)` | Text with one exact hunk applied |
+| `Porrima.revert(text, hunk)` | Text with one exact hunk reversed |
+| `Porrima::Inline.refine(before, after)` | Word- or character-level spans |
+| `Porrima::Patch.parse(text)` | Parsed unified file diffs |
+| `Porrima::Merge.three_way(...)` | Structured three-way merge result |
 
-- `Edit` is an equal, deleted, or inserted line with old and new positions.
-- `Hunk` groups edits and exposes its exact old and new text.
-- `Mark` locates an added, modified, or removed block on the new side.
-- `Row` pairs old and new lines without presentation policy.
-- `Span` describes equal, deleted, or inserted inline text.
-- `Merge::Result` contains plain sections and structured conflicts; markers are
-  only produced by `Merge.to_text`.
+### Diff result
+
+| View | Contains |
+| --- | --- |
+| `edits` | Equal, deleted, or inserted lines with old and new positions |
+| `hunks` | Context-aware groups with exact old and new text |
+| `stat` | Insertion, deletion, and hunk counts |
+| `marks` | Added, modified, or removed ranges on the new side |
+| `rows` | Old and new lines paired for side-by-side display |
+
+Use `hunk_at(new_line:)` or `mark_at(new_line:)` for position lookup,
+`to_unified` for interoperable text, and `to_h` for serialization.
 
 `Diff` snapshots its inputs and lazily memoizes these collections. Finish the
-fields needed by another thread on the producing thread before handing the
-instance across.
+fields needed by another thread on the producing thread before sharing it.
+
+### Inline diff
+
+```ruby
+old_spans, new_spans = Porrima::Inline.refine("hello old", "hello new")
+```
+
+Pass `granularity: :char` to compare grapheme clusters instead of words.
+
+### Patch
+
+```ruby
+file = Porrima::Patch.parse(diff.to_unified).first
+file.applies?(before) # => true
+file.apply(before)    # => "one\nchanged\n"
+file.revert(after)    # => "one\ntwo\n"
+```
+
+Patch application is exact: stale or malformed input raises a Porrima error.
+
+### Three-way merge
+
+```ruby
+merge = Porrima::Merge.three_way(
+  base: "old\n",
+  ours: "ours\n",
+  theirs: "theirs\n"
+)
+
+merge.clean?
+merge.conflicts
+Porrima::Merge.to_text(merge, style: :diff3)
+```
 
 ## CLI
 
@@ -68,14 +131,22 @@ porrima apply [options] PATCH [FILE]
 
 Diff supports unified output, `--json`, `--quiet`, and `--max-bytes`. Merge
 supports structured JSON or `diff3`/`merge` markers. Apply supports
-`--reverse` and validation-only `--check`. Exit status is 0 for no
-diff/conflict, 1 for a diff/conflict, and 2 for an error.
+`--reverse` and validation-only `--check`.
 
-## Compatibility
+Exit status is 0 for no diff or conflict, 1 for a diff or conflict, and 2 for
+an error.
 
-Porrima requires CRuby 3.1 or newer. The line edit, hunk, unified output, and
-revert behavior are byte-compatible with the original Canopus diff engine.
-Public struct field names and order are part of the 0.1 contract.
+## Compatibility and limits
+
+- Line edits, hunks, unified output, and revert behavior are byte-compatible
+  with the original Canopus diff engine.
+- Public struct field names and order are part of the 0.1 contract.
+- Comparison uses `String#==`; callers own encoding normalization.
+- Patch application intentionally has no fuzz matching.
+- Inline refinement treats over 2,000 combined tokens as one replacement.
+- `Porrima::Budget` can replace an oversized input as one block or raise
+  `Porrima::BudgetExceeded`.
+- During 0.x releases, minor versions may contain breaking changes.
 
 ## Development
 
@@ -88,14 +159,11 @@ bundle exec rake bench:assert
 gem build --strict porrima.gemspec
 ```
 
-## Limits
+## Contributing
 
-- Comparison uses `String#==`; callers own encoding normalization.
-- Patch application is exact and intentionally has no fuzz matching.
-- Inline refinement treats over 2,000 combined tokens as a whole-text replacement.
-- `Diff` memoization is not synchronized; complete it before cross-thread use.
-- During 0.x releases, minor versions may contain breaking changes.
+Bug reports and pull requests are welcome on
+[GitHub](https://github.com/noxdea/porrima).
 
 ## License
 
-Porrima is released under the [MIT License](LICENSE.txt).
+Porrima is available under the [MIT License](LICENSE.txt).
