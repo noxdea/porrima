@@ -2,6 +2,7 @@ module Porrima
   VERSION: String
   type lines = String | Array[String]
   type kind = :equal | :delete | :insert
+  type merge_choice = :ours | :theirs | :base | :ours_then_theirs | :theirs_then_ours | String | Array[String]
 
   class Error < StandardError
   end
@@ -110,14 +111,27 @@ module Porrima
       attr_accessor theirs: String
       def self.new: (base_start: Integer, base_count: Integer, base: String, ours: String, theirs: String) -> instance
     end
+    class Region < Struct[untyped]
+      attr_accessor conflict: Conflict
+      attr_accessor output_start: Integer
+      attr_accessor output_count: Integer
+      attr_accessor index: Integer
+      def self.new: (conflict: Conflict, output_start: Integer, output_count: Integer, index: Integer) -> instance
+    end
     class Result
       attr_reader sections: Array[String | Conflict]
       attr_reader conflicts: Array[Conflict]
       def initialize: (Array[String | Conflict]) -> void
       def clean?: () -> bool
+      def resolved?: () -> bool
+      def regions: () -> Array[Region]
     end
     def self.three_way: (base: String, ours: String, theirs: String) -> Result
     def self.to_text: (Result, ?style: (:diff3 | :merge), ?labels: Array[String]) -> String
+    def self.resolve: (Result, Integer, merge_choice) -> Result
+    def self.resolve_all: (Result, merge_choice) -> Result
+    def self.to_resolved_text: (Result) -> String
+    def self.conflict_inline: (Conflict) -> { ours: Array[Span], theirs: Array[Span] }
   end
 
   def self.diff: (lines, lines, ?context: Integer, ?budget: Budget?) -> Diff

@@ -4,17 +4,55 @@ module Porrima
   module Merge
     Change = Struct.new(:start, :finish, :replacement, :side, keyword_init: true)
     Conflict = Struct.new(:base_start, :base_count, :base, :ours, :theirs, keyword_init: true)
+    Region = Struct.new(:conflict, :output_start, :output_count, :index, keyword_init: true)
+    RESOLUTION_CHOICES = %i[ours theirs base ours_then_theirs theirs_then_ours].freeze
 
     class Result
       attr_reader :sections, :conflicts
 
       def initialize(sections)
-        @sections = sections.freeze
-        @conflicts = sections.grep(Conflict).freeze
+        raise ArgumentError, "sections must be an array" unless sections.is_a?(Array)
+        @sections = sections.map { |section| snapshot(section) }.freeze
+        @conflicts = @sections.grep(Conflict).freeze
         freeze
       end
 
       def clean? = conflicts.empty?
+      def resolved? = conflicts.empty?
+
+      def regions
+        output_line = conflict_index = 0
+        sections.each_with_object([]) do |section, regions|
+          unless section.is_a?(Conflict)
+            output_line += section.count("\n")
+            next
+          end
+
+          marked = +""
+          Merge.send(:append_conflict_text, marked, section, :merge, ["ours", "base", "theirs"])
+          output_count = marked.count("\n")
+          regions << Region.new(conflict: section, output_start: output_line,
+            output_count: output_count, index: conflict_index).freeze
+          output_line += output_count
+          conflict_index += 1
+        end.freeze
+      end
+
+      private
+
+      def snapshot(section)
+        return section.dup.freeze if section.is_a?(String)
+        raise ArgumentError, "sections must contain strings or conflicts" unless section.is_a?(Conflict)
+        unless section.base_start.is_a?(Integer) && section.base_start >= 0 &&
+            section.base_count.is_a?(Integer) && section.base_count >= 0 &&
+            [section.base, section.ours, section.theirs].all?(String)
+          raise ArgumentError, "invalid conflict"
+        end
+
+        Conflict.new(base_start: section.base_start, base_count: section.base_count,
+          base: section.base.dup.freeze, ours: section.ours.dup.freeze,
+          theirs: section.theirs.dup.freeze).freeze
+      end
     end
 
     module_function
@@ -65,16 +103,36 @@ module Porrima
           output << section
           next
         end
-        output << "<<<<<<< #{labels[0]}\n"
-        append_marked_text(output, section.ours)
-        if style == :diff3
-          output << "||||||| #{labels[1]}\n"
-          append_marked_text(output, section.base)
-        end
-        output << "=======\n"
-        append_marked_text(output, section.theirs)
-        output << ">>>>>>> #{labels[2]}\n"
+        append_conflict_text(output, section, style, labels)
       end
+    end
+
+    def resolve(result, index, choice)
+      validate_result(result)
+      unless index.is_a?(Integer) && index.between?(0, result.conflicts.length - 1)
+        raise ArgumentError, "index must identify a conflict"
+      end
+      validate_choice(choice)
+      conflict = result.conflicts[index]
+      Result.new(result.sections.map { |section| section.equal?(conflict) ? resolution_text(conflict, choice) : section })
+    end
+
+    def resolve_all(result, choice)
+      validate_result(result)
+      validate_choice(choice)
+      Result.new(result.sections.map { |section| section.is_a?(Conflict) ? resolution_text(section, choice) : section })
+    end
+
+    def to_resolved_text(result)
+      validate_result(result)
+      raise ArgumentError, "merge result has unresolved conflicts" unless result.resolved?
+      result.sections.join
+    end
+
+    def conflict_inline(conflict)
+      raise ArgumentError, "conflict must be a Porrima::Merge::Conflict" unless conflict.is_a?(Conflict)
+      ours, theirs = Inline.refine(conflict.ours, conflict.theirs)
+      {ours: ours, theirs: theirs}
     end
 
     def lines(text) = text.is_a?(String) ? text.lines : text
@@ -130,5 +188,43 @@ module Porrima
       output << "\n" unless text.empty? || text.end_with?("\n")
     end
     private_class_method :append_marked_text
+
+    def append_conflict_text(output, conflict, style, labels)
+      output << "<<<<<<< #{labels[0]}\n"
+      append_marked_text(output, conflict.ours)
+      if style == :diff3
+        output << "||||||| #{labels[1]}\n"
+        append_marked_text(output, conflict.base)
+      end
+      output << "=======\n"
+      append_marked_text(output, conflict.theirs)
+      output << ">>>>>>> #{labels[2]}\n"
+    end
+    private_class_method :append_conflict_text
+
+    def validate_result(result)
+      raise ArgumentError, "result must be a Porrima::Merge::Result" unless result.is_a?(Result)
+    end
+    private_class_method :validate_result
+
+    def validate_choice(choice)
+      valid = RESOLUTION_CHOICES.include?(choice) || choice.is_a?(String) ||
+        (choice.is_a?(Array) && choice.all?(String))
+      raise ArgumentError, "invalid resolution choice" unless valid
+    end
+    private_class_method :validate_choice
+
+    def resolution_text(conflict, choice)
+      case choice
+      when :ours then conflict.ours
+      when :theirs then conflict.theirs
+      when :base then conflict.base
+      when :ours_then_theirs then conflict.ours + conflict.theirs
+      when :theirs_then_ours then conflict.theirs + conflict.ours
+      when Array then choice.join
+      else choice
+      end
+    end
+    private_class_method :resolution_text
   end
 end

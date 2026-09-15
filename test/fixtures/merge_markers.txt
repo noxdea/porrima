@@ -1,0 +1,13 @@
+a
+<<<<<<< ours
+B ours
+=======
+B theirs
+>>>>>>> theirs
+c
+<<<<<<< ours
+D ours
+=======
+D theirs
+>>>>>>> theirs
+e

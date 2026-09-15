@@ -1,0 +1,17 @@
+a
+<<<<<<< ours
+B ours
+||||||| base
+b
+=======
+B theirs
+>>>>>>> theirs
+c
+<<<<<<< ours
+D ours
+||||||| base
+d
+=======
+D theirs
+>>>>>>> theirs
+e
