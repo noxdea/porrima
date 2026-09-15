@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["t.yudai92@gmail.com"]
 
   spec.summary = "Line, word, and three-way diff, patch, and merge in pure Ruby"
-  spec.description = "Linear-space Myers diff with context hunks, gutter marks, paired rows, unified output, strict patch application, and three-way merge. No I/O, no dependencies."
+  spec.description = "Linear-space Myers diff with context hunks, gutter marks, paired rows, unified output, strict patch application, and resolvable three-way merge. No I/O, no dependencies."
   spec.homepage = "https://github.com/noxdea/porrima"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1"
