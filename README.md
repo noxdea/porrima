@@ -31,7 +31,7 @@ color, width, truncation, caching, and other display policy to the caller.
 - Linear-space Myers diff for lines and inline word or character refinement
 - Context hunks, change statistics, gutter marks, and paired rows
 - Unified diff output with strict patch parsing, application, and reversal
-- Three-way merge with structured conflicts and `diff3` or `merge` markers
+- Three-way merge with structured conflicts, output regions, and immutable resolution
 - CLI output as unified text or JSON
 - No runtime dependencies
 
@@ -118,8 +118,19 @@ merge = Porrima::Merge.three_way(
 
 merge.clean?
 merge.conflicts
+merge.regions # zero-based locations in merge-marker output
 Porrima::Merge.to_text(merge, style: :diff3)
+
+resolved = Porrima::Merge.resolve(merge, 0, :ours)
+Porrima::Merge.to_resolved_text(resolved) # => "ours\n"
+Porrima::Merge.conflict_inline(merge.conflicts.first)
 ```
+
+`resolve` accepts `:ours`, `:theirs`, `:base`, `:ours_then_theirs`,
+`:theirs_then_ours`, a replacement string, or an array of replacement strings.
+It returns a new result and leaves the source result unchanged. Use `resolve_all`
+to apply one choice to every conflict. `to_resolved_text` rejects results that
+still contain a conflict.
 
 ## CLI
 
@@ -144,6 +155,8 @@ an error.
 - Comparison uses `String#==`; callers own encoding normalization.
 - Patch application intentionally has no fuzz matching.
 - Inline refinement treats over 2,000 combined tokens as one replacement.
+- Merge region positions are zero-based and cover the complete conflict marker
+  block produced by `to_text(style: :merge)`.
 - `Porrima::Budget` can replace an oversized input as one block or raise
   `Porrima::BudgetExceeded`.
 - During 0.x releases, minor versions may contain breaking changes.
