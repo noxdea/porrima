@@ -129,6 +129,16 @@ class MergeTest < Minitest::Test
     assert_equal Porrima::Inline.refine(conflict.ours, conflict.theirs).last, inline.fetch(:theirs)
   end
 
+  def test_conflict_inline_keeps_the_existing_token_limit
+    ours = "old " * 1_001
+    theirs = "new " * 1_001
+    conflict = Porrima::Merge::Conflict.new(base_start: 1, base_count: 1,
+      base: "base", ours: ours, theirs: theirs)
+
+    assert_equal({ours: [{kind: :delete, text: ours}], theirs: [{kind: :insert, text: theirs}]},
+      Porrima::Merge.conflict_inline(conflict).transform_values { |spans| spans.map(&:to_h) })
+  end
+
   def test_resolution_api_rejects_invalid_inputs
     result = Porrima::Merge.three_way(base: "old\n", ours: "ours\n", theirs: "theirs\n")
 
@@ -139,6 +149,10 @@ class MergeTest < Minitest::Test
     assert_raises(ArgumentError) { Porrima::Merge.to_resolved_text(result) }
     assert_raises(ArgumentError) { Porrima::Merge.conflict_inline(Object.new) }
     assert_raises(ArgumentError) { Porrima::Merge::Result.new([Object.new]) }
+    assert_raises(ArgumentError) do
+      Porrima::Merge::Result.new([Porrima::Merge::Conflict.new(base_start: -1, base_count: 1,
+        base: "base", ours: "ours", theirs: "theirs")])
+    end
   end
 
   def test_existing_merge_serialization_matches_byte_golden

@@ -130,7 +130,9 @@ module Porrima
     end
 
     def conflict_inline(conflict)
-      raise ArgumentError, "conflict must be a Porrima::Merge::Conflict" unless conflict.is_a?(Conflict)
+      unless conflict.is_a?(Conflict) && [conflict.ours, conflict.theirs].all?(String)
+        raise ArgumentError, "conflict must contain ours and theirs text"
+      end
       ours, theirs = Inline.refine(conflict.ours, conflict.theirs)
       {ours: ours, theirs: theirs}
     end
