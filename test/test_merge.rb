@@ -106,6 +106,13 @@ class MergeTest < Minitest::Test
     assert_equal 2, result.conflicts.length
   end
 
+  def test_resolve_both_keeps_unterminated_alternatives_on_separate_lines
+    result = Porrima::Merge.three_way(base: "old", ours: "ours", theirs: "theirs")
+
+    assert_equal "ours\ntheirs", Porrima::Merge.to_resolved_text(Porrima::Merge.resolve(result, 0, :ours_then_theirs))
+    assert_equal "theirs\nours", Porrima::Merge.to_resolved_text(Porrima::Merge.resolve(result, 0, :theirs_then_ours))
+  end
+
   def test_resolved_results_snapshot_mutable_input
     text = +"mutable\n"
     conflict = Porrima::Merge::Conflict.new(base_start: 1, base_count: 1,

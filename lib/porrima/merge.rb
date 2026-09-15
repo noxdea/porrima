@@ -6,6 +6,7 @@ module Porrima
     Conflict = Struct.new(:base_start, :base_count, :base, :ours, :theirs, keyword_init: true)
     Region = Struct.new(:conflict, :output_start, :output_count, :index, keyword_init: true)
     RESOLUTION_CHOICES = %i[ours theirs base ours_then_theirs theirs_then_ours].freeze
+    private_constant :RESOLUTION_CHOICES
 
     class Result
       attr_reader :sections, :conflicts
@@ -221,12 +222,18 @@ module Porrima
       when :ours then conflict.ours
       when :theirs then conflict.theirs
       when :base then conflict.base
-      when :ours_then_theirs then conflict.ours + conflict.theirs
-      when :theirs_then_ours then conflict.theirs + conflict.ours
+      when :ours_then_theirs then join_alternatives(conflict.ours, conflict.theirs)
+      when :theirs_then_ours then join_alternatives(conflict.theirs, conflict.ours)
       when Array then choice.join
       else choice
       end
     end
     private_class_method :resolution_text
+
+    def join_alternatives(first, second)
+      return first + second if first.empty? || second.empty? || first.end_with?("\n")
+      first + "\n" + second
+    end
+    private_class_method :join_alternatives
   end
 end
