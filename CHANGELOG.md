@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a deterministic side-by-side diff demo image and regeneration task.
+
 ## 0.2.0 — 2026-09-15
 
 - Add zero-based merge output regions for conflict marker blocks.

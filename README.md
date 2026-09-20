@@ -26,6 +26,8 @@ Porrima turns two or three texts into structured edits, hunks, patches, and
 merge conflicts. Its core performs no I/O, knows nothing about Git, and leaves
 color, width, truncation, caching, and other display policy to the caller.
 
+![Porrima side-by-side diff](docs/media/screenshot.png)
+
 ## Features
 
 - Linear-space Myers diff for lines and inline word or character refinement
