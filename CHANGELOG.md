@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 — 2026-09-21
 
 - Add a deterministic side-by-side diff demo image and regeneration task.
 
