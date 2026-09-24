@@ -34,6 +34,7 @@ color, width, truncation, caching, and other display policy to the caller.
 - Context hunks, change statistics, gutter marks, and paired rows
 - Unified diff output with strict patch parsing, application, and reversal
 - Three-way merge with structured conflicts, output regions, and immutable resolution
+- Sparse sheet cell changes and ordered slide changes without application dependencies
 - CLI output as unified text or JSON
 - No runtime dependencies
 
@@ -73,6 +74,31 @@ puts diff.to_unified(old_name: "a/example", new_name: "b/example")
 | `Porrima::Inline.refine(before, after)` | Word- or character-level spans |
 | `Porrima::Patch.parse(text)` | Parsed unified file diffs |
 | `Porrima::Merge.three_way(...)` | Structured three-way merge result |
+| `Porrima::Structured.sheet(before, after)` | Changed cells in row/column order |
+| `Porrima::Structured.slides(before, after)` | Added, removed, or modified slide positions |
+
+### Structured data
+
+`Structured.sheet` accepts sparse sheets with `row_count`, `column_count`, and
+`each_in(top, left, bottom, right)`, such as `Denebola::Sheet` returned by
+`Rukbat::Workbook#sheet`. It returns only changed cells, with zero-based
+`row` and `column`, `kind`, `before`, and `after`. A missing cell is `nil`.
+
+`Structured.slides` accepts two ordered arrays. Pass a block to compare a
+projection of each slide, while the results retain the original slide values:
+
+```ruby
+before = old_deck.slides
+after = new_deck.slides
+changes = Porrima::Structured.slides(before, after) do |slide|
+  [slide.layout, slide.slots.transform_values(&:text), slide.notes]
+end
+```
+
+Each change has `kind`, zero-based `old_index`/`new_index`, and `before`/`after`.
+An absent side has a `nil` index and value. Choose a projection that includes
+everything relevant to your comparison; for exact Markdown changes, compare
+the decks' source text with `Porrima.diff`.
 
 ### Diff result
 

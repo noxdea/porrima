@@ -134,6 +134,27 @@ module Porrima
     def self.conflict_inline: (Conflict) -> { ours: Array[Span], theirs: Array[Span] }
   end
 
+  module Structured
+    class CellChange < Struct[untyped]
+      attr_accessor kind: :added | :modified | :removed
+      attr_accessor row: Integer
+      attr_accessor column: Integer
+      attr_accessor before: untyped
+      attr_accessor after: untyped
+      def self.new: (kind: (:added | :modified | :removed), row: Integer, column: Integer, before: untyped, after: untyped) -> instance
+    end
+    class SlideChange < Struct[untyped]
+      attr_accessor kind: :added | :modified | :removed
+      attr_accessor old_index: Integer?
+      attr_accessor new_index: Integer?
+      attr_accessor before: untyped
+      attr_accessor after: untyped
+      def self.new: (kind: (:added | :modified | :removed), old_index: Integer?, new_index: Integer?, before: untyped, after: untyped) -> instance
+    end
+    def self.sheet: (untyped before, untyped after) -> Array[CellChange]
+    def self.slides: (Array[untyped] before, Array[untyped] after) ?{ (untyped) -> untyped } -> Array[SlideChange]
+  end
+
   def self.diff: (lines, lines, ?context: Integer, ?budget: Budget?) -> Diff
   def self.edits: (lines, lines, ?budget: Budget?) -> Array[Edit]
   def self.hunks: (lines, lines, ?context: Integer, ?budget: Budget?) -> Array[Hunk]

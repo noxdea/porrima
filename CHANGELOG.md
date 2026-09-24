@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 — 2026-09-24
+
+- Add sparse cell and ordered slide difference APIs without application dependencies.
+
 ## 0.2.1 — 2026-09-21
 
 - Add a deterministic side-by-side diff demo image and regeneration task.

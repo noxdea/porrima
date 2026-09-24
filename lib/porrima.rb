@@ -11,6 +11,7 @@ require_relative "porrima/diff"
 require_relative "porrima/patch"
 require_relative "porrima/inline"
 require_relative "porrima/merge"
+require_relative "porrima/structured"
 
 module Porrima
   module_function
